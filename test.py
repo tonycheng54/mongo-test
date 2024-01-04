@@ -1,44 +1,44 @@
-import pymongo
+from mongo import Mongo
 import datetime
 
-class Mongo:
-    def __init__(self) -> None:
-        pass
+# class Mongo:
+#     def __init__(self) -> None:
+#         pass
 
-    def mongo_conn(self):
-        client = pymongo.MongoClient("mongodb://localhost:27017/")
-        return client
+#     def mongo_conn(self):
+#         client = pymongo.MongoClient("mongodb://localhost:27017/")
+#         return client
     
-    def mongo_insert(self, db, table, json_data):
-        client = self.mongo_conn()
-        collection = client[db][table]
+#     def mongo_insert(self, db, table, json_data):
+#         client = self.mongo_conn()
+#         collection = client[db][table]
 
-        collection.insert_many(json_data)
+#         collection.insert_many(json_data)
 
-    def mongo_find(self, db, table, query = {}, column = {'_id':0}):
-        client = self.mongo_conn()
-        collection = client[db][table]
+#     def mongo_find(self, db, table, query = {}, column = {'_id':0}):
+#         client = self.mongo_conn()
+#         collection = client[db][table]
         
-        if ('_id' in column) == False:
-            column['_id'] = 0
+#         if ('_id' in column) == False:
+#             column['_id'] = 0
 
-        # print('query: %s' %type(query))
-        # print('column: %s'%type(column))
-        datas = collection.find(query,column)
-        r = list(datas)
-        return r
-    def mongo_update(self, db, table, query = {}, update={}, upsert = False):
-        client = self.mongo_conn()
-        collection = client[db][table]
+#         # print('query: %s' %type(query))
+#         # print('column: %s'%type(column))
+#         datas = collection.find(query,column)
+#         r = list(datas)
+#         return r
+#     def mongo_update(self, db, table, query = {}, update={}, upsert = False):
+#         client = self.mongo_conn()
+#         collection = client[db][table]
         
-        result = collection.update_many(query, {"$set":update}, upsert=upsert)
-        return result
+#         result = collection.update_many(query, {"$set":update}, upsert=upsert)
+#         return result
     
-    def mongo_upsert(self,db, table, query = {}, update={}, upsert = True):
-        client = self.mongo_conn()
-        collection = client[db][table]
-        res = collection.update_one(query, {"$set": update}, True)
-        return res
+#     def mongo_upsert(self,db, table, query = {}, update={}, upsert = True):
+#         client = self.mongo_conn()
+#         collection = client[db][table]
+#         res = collection.update_one(query, {"$set": update}, True)
+#         return res
         
 
 def find_test( mongo, title = "", db='db1', table='obs', query = {}, column = {}):
@@ -73,6 +73,7 @@ if __name__ == '__main__':
     find_test(mongo, title="get rain > 10", query={'obs.rain':{"$gt":10}}, column={"obs":1,"stid":1, "obstime":1})
 
     update_test(mongo, title="update 2023/01/01 1:00 466900  temperature from 30.2 to 19.7", query={"stid":"466900", "obstime":"2023-01-01T01:00"}, update={"qc.temp":19.6})
+    
     d = datetime.datetime.strptime("2023-01-01T01:00", "%Y-%m-%dT%H:%M")
     update_test(mongo, title="update none exist data and insert", 
                 query={"stid":"466880", "obstime": d}, 
