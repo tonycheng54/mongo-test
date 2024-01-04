@@ -25,7 +25,8 @@ class Mongo:
         # print('query: %s' %type(query))
         # print('column: %s'%type(column))
         datas = collection.find(query,column)
-        return list(datas)
+        r = list(datas)
+        return r
     def mongo_update(self, db, table, query = {}, update={}, upsert = False):
         client = self.mongo_conn()
         collection = client[db][table]
@@ -78,4 +79,16 @@ if __name__ == '__main__':
                 update={"stid":"466880","obstime":d,"obs":{"ws":12.1,"rain":7.4,"temp":15.2},"qc":{"ws":["method1","method2"]}},
                 upsert=True
                 )
+    
+    update_test(mongo, title="update none exist data and insert", 
+                query={"stid":"466880", "obstime": d}, 
+                update={"stid":"466880","obstime":d,"obs":{"ws":12.1,"rain":27.4,"temp":15.2},"qc":{"ws":["method1","method2"]}}
+                
+                )
+    
+    rs = mongo.mongo_find(db, table, {"obstime": {"$not" : {"$type": "date"}}})
+
+    for r in rs:
+        d = datetime.datetime.strptime(r['obstime'], '%Y-%m-%dT%H:%M')
+        mongo.mongo_update(db, table, query={"stid": r['stid'], "obstime":r['obstime']}, update={"obstime": d})
 
