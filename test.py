@@ -23,7 +23,7 @@ def insert_test(mongo:Mongo, title = "", db="db1", table = "obs", insert_data = 
     print("\n%s" %title)
     print(r)
 
-def convert_timestring_to_timeformat(mongo:Mongo,db="db1", talbe="obs"):
+def convert_timestring_to_timeformat(mongo:Mongo,db="db1", table="obs"):
     
     rs = mongo.mongo_find(db, table, {"obstime": {"$not" : {"$type": "date"}}})
 
