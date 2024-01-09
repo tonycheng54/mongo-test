@@ -1,7 +1,7 @@
 import time
 import os
 import pymongo
-from mongotest.mongo import Mongo
+from lib.mongo import Mongo
 import pymysql
 import random
 import math

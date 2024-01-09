@@ -1,4 +1,4 @@
-from mongo import Mongo
+from lib.mongo import Mongo
 import datetime
 import os        
 

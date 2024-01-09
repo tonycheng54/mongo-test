@@ -1,4 +1,4 @@
-from mongo import Mongo
+from lib.mongo import Mongo
 import datetime
 import os
 
@@ -23,7 +23,7 @@ def get_extreme_attribute(db, table):
     end_time = datetime.datetime(2023,1,2,0,0)
     match = {"obstime":{"$gte":start_time, "lt":end_time}}
     group = {"stid":"$stid"}
-    
+
 
 
 if __name__ == '__main__':
