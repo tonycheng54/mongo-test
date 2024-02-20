@@ -1,0 +1,38 @@
+version: "3"
+services:
+  mongo1:
+    container_name: mongo1
+    image: mongo:dep
+    ports:
+      - 27017:27017
+    restart: always
+    entrypoint: [ "mongod", "-f", "/etc/mongod.conf" ]
+    volumes:
+      - D:\Project_Code\agr\mongo_python\env_start\config\mongo1\mongod.conf:/etc/mongod.conf
+    # networks: 
+      # - bridge
+  mongo2:
+    container_name: mongo2
+    image: mongo:dep
+    ports:
+      - 27018:27017
+    restart: always
+    entrypoint: [ "mongod", "-f", "/etc/mongod.conf" ]
+    volumes:
+      - D:\Project_Code\agr\mongo_python\env_start\config\mongo2\mongod.conf:/etc/mongod.conf
+    # networks: 
+      # - bridge
+  mongoarb:
+    container_name: mongoarb
+    image: mongo:dep
+    ports:
+      - 27019:27017
+    restart: always
+    entrypoint: [ "mongod", "-f", "/etc/mongod.conf" ]
+    volumes:
+      - D:\Project_Code\agr\mongo_python\env_start\config\mongoarb\mongod.conf:/etc/mongod.conf
+    # networks: 
+      # - bridge
+
+    
+    

@@ -1,4 +1,4 @@
-from lib.mongo import Mongo
+from lib.mongo import Mongo, Opretor
 import datetime
 import os        
 
@@ -33,13 +33,14 @@ def convert_timestring_to_timeformat(mongo:Mongo,db="db1", table="obs"):
 
 if __name__ == '__main__':
     mongo = Mongo()
+    mongo.mongo_conn(host='localhost:27017,localhost:37017,localhost:47017')
     # datas = mongo.mongo_find('db1', 'obs')
     # for d in datas:
     #     print(d)
     db = 'db1'
     table = 'obs'
     conn = mongo.mongo_conn()
-    conn[db][table].drop()
+    #conn[db][table].drop()
     
 
     timeformat = "%Y-%m-%d %H:%M"
@@ -59,7 +60,7 @@ if __name__ == '__main__':
     stid = '466900'
     find_test(mongo, title= "get station: %s" %stid, query= {"stid":stid})
     find_test(mongo, title="get all and select obs data", column={"obs":1})
-    find_test(mongo, title="get rain > 10", query={'obs.rain':{"$gt":10}}, column={"obs":1,"stid":1, "obstime":1})
+    find_test(mongo, title="get rain > 10", query={'obs.rain':{Opretor.gt:10}}, column={"obs":1,"stid":1, "obstime":1})
     #os.system("pause")
     update_test(mongo, title="update 2023-01-01 01:00 466900  temperature from 30.2 to 19.7", query={"stid":"466900", "obstime":d1}, update={"obs.temp":19.6})
     find_test(mongo,query={"stid":"466900", "obstime":d1})

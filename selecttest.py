@@ -18,9 +18,9 @@ class MySQL:
         
         connection = pymysql.connect(
             host="localhost",
-            user="admin",
+            user="root",
             password="Ie@123456",
-            database="disaster"
+            database="ari"
         )
         return connection
     
@@ -74,8 +74,9 @@ def test1_get_obstime_and_stationid():
     ranGen = RandGen()
     mySQL = MySQL()
     mongo = Mongo()
-    table_name_list = ['cwbhour', 'autoprechour', 'agrhour']
-    station_type_list = ['cwa', 'auto', 'agr']
+    mongo.mongo_conn("localhost:27017,localhost:37017")
+    table_name_list = ['cwbhour'] #, 'autoprechour', 'agrhour']
+    station_type_list = ['cwa'] #, 'auto', 'agr']
     random_count = 50000
     
     for s in zip(station_type_list, table_name_list):

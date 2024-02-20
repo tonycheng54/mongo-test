@@ -28,57 +28,76 @@ class MongoDataArrange:
         '''
         
         return self.__time_format(updatetime, timezone)
+    
+    def get_id(self, stno, obstime, timezone= 'Asia/Taipei'):
+        return  stno + obstime.strftime('%Y%m%d%H%M%S')
 
     def base_data(self, dic, stno, obstime, timezone='Asia/Taipei'):
         dic = dict()
         if obstime is None or stno is None:
             raise "missing stno or obstime"
-        dic[Schema.id] = stno + obstime.strftime('%Y%m%d%H%M%S')
+        dic[Schema.id] = self.get_id(stno, obstime)
         dic[Schema.stationid] = stno
         dic[Schema.obstime] = self.__time_format(obstime, timezone)
         #dic[Schema.obstime] = datetime.datetime.strptime(obstime, timeformat)
         return dic
     
-    def pressure_arrange(self, dic:dict, pressure, updatetime = None):
-
-        dic[Schema.Pressure.key] = []
+    def pressure_arrange(self, dic:dict, pressure, updatetime = None, isappend=False):
+        if isappend == False:
+            dic[Schema.Pressure.key] = []
         data = dict()
         data[Schema.Pressure.updatetime] = self.__set_updatetime(updatetime)
         data[Schema.Pressure.pressure] = pressure
         data[Schema.Pressure.qc_key] = dict()
         data[Schema.Pressure.qc_key][Schema.Pressure.QC.qc_name] = 'cond'
-        data[Schema.Pressure.qc_key][Schema.Pressure.QC.result] = 'result'
-
-        dic[Schema.Pressure.key].append(data)
+        data[Schema.Pressure.qc_key][Schema.Pressure.QC.result] = 'success'
+        if isappend == False:
+            dic[Schema.Pressure.key].append(data)
+        else:
+            dic[Schema.Pressure.key] = data
         return dic
     
-    def tx_arrange(self, dic: dict, tx, updatetime = None):
-        dic[Schema.Tx.key] = []
+    def tx_arrange(self, dic: dict, tx, updatetime = None, isappend=False):
+        if isappend == False:
+            dic[Schema.Tx.key] = []
         data = dict()
         data[Schema.Tx.updatetime] = self.__set_updatetime(updatetime=updatetime)
         data[Schema.Tx.tx] = tx
-        dic[Schema.Tx.key].append(data)
+        if isappend == False:
+            dic[Schema.Tx.key].append(data)
+        else:
+            dic[Schema.Tx.key] = data
         return dic
     
-    def wind_arragen(self, dic: dict, wd, ws, wg = None, updatetime = None):
-        dic[Schema.Wind.key] = []
+    def wind_arragen(self, dic: dict, wd, ws, wg = None, updatetime = None, isappend= False):
+        if isappend == False:
+            dic[Schema.Wind.key] = []
+        
         data = dict()
         data[Schema.Wind.updatetime] = self.__set_updatetime(updatetime)
         data[Schema.Wind.wd] = wd
         data[Schema.Wind.ws] = ws
         if wg is not None:
             data[Schema.Wind.wg] = wg
-        dic[Schema.Wind.key].append(data)
+        if isappend == False:
+            dic[Schema.Wind.key].append(data)
+        else:
+            dic[Schema.Wind.key] = data
+        
         return dic
     
-    def rain_arrange(self, dic: dict, precp, rh = None, updatetime = None):
-        dic[Schema.Rain.key] = []
+    def rain_arrange(self, dic: dict, precp, rh = None, updatetime = None, isappend=False):
+        if isappend == False:
+            dic[Schema.Rain.key] = []
         data = dict()
         data[Schema.Wind.updatetime] = self.__set_updatetime(updatetime)
         data[Schema.Rain.precp] = precp
         if rh is not None:
             data[Schema.Rain.rh] = rh
-        dic[Schema.Rain.key].append(data)
+        if isappend == False:
+            dic[Schema.Rain.key].append(data)
+        else:
+            dic[Schema.Rain.key] = data
         return dic
         
 
