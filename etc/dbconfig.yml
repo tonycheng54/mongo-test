@@ -2,9 +2,12 @@ mongo:
   # host: "192.168.60.21:27017,192.168.60.22:27017"
   # db: "test"
   # collection: "obsdata"
-  host: "mongo1:27017,mongo2:27017"
+
+  #host: "mongo1:27017,mongo2:27018"
+  host: "localhost:27017"
+  #host: "localhost:27017,localhost:27018"
   db: "test"
-  collection: "obsdata"  
+  collection: "obs_test"  
   
 mysql:
   host: "localhost"
@@ -18,7 +21,7 @@ mysql:
   # db: "NoSQL_DatatTest"
 
 test:
-  insert: false
-  month: true
+  insert: true
+  month: false
   station: false
-  update: true
+  update: false
