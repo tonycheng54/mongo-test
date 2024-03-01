@@ -21,6 +21,12 @@ class Mongo:
     def __init__(self) -> None:
         pass
 
+    def mongo_conn_state(self):
+        # if self.Client != None:
+        #     return self.Client
+        #return self.Client.server_info()
+        return self.Client.info
+
     def mongo_conn(self, uri='localhost', port='27017', replicaName = None):        
         return self.mongo_conn('%s:%s' %(uri, port,replicaName))
     
@@ -51,14 +57,6 @@ class Mongo:
         conn.close()
         self.Client = None
     
-    def mongo_insert(self, db, table, json_data:list, conn_close=False):
-        client = self.mongo_conn()
-        collection = client[db][table]
-        r = collection.insert_many(json_data)
-        if conn_close == True:
-            self.mongo_close(client)
-        return r
-
     def mongo_count(self, db, table, where = {}):
         client = self.mongo_conn()
         col = client[db][table]
@@ -66,15 +64,10 @@ class Mongo:
         self.mongo_close(client)
         return result
     
-    #@retry(retry_on_exception=__retry_if_auto_reconnect_error, stop_max_attempt_number=2, wait_fixed=2000)
-    # @retry(AutoReconnect, tries=3, delay=1)
-    def mongo_find(self, db, table, where = {}, column = {'_id':0}, print_flag = False, limit= -1, skip=-1):
+    def mongo_find(self, db, table, where = {}, column = {}, print_flag = False, limit= -1, skip=-1):
         client = self.mongo_conn()
         collection = client[db][table]
         
-        if ('_id' in column) == False:
-            column['_id'] = 0
-
         if print_flag == True:
             print('where: %s' %where)
             print('column: %s'%column)
@@ -83,10 +76,28 @@ class Mongo:
             datas = datas.limit(limit)
         if skip != -1:
             datas = datas.skip(skip)
+        
         r = list(datas)
         # client.close()
         return r
+        
+    def mongo_insert(self, db, table, json_data:list, conn_close=False):
+        '''
+        insert data. if _id duplicate. raise exception
+        '''
+        client = self.mongo_conn()
+        collection = client[db][table]
+        r = collection.insert_many(json_data)
+        if conn_close == True:
+            self.mongo_close(client)
+        return r
     
+    def mongo_upsert(self, db, table, where = [], update=[], upsert=True, conn_close=False):
+        '''
+        insert or update 
+        '''
+        return self.__mongo_update_multiple(db, table, where, update, "$set", upsert, conn_close)
+
     def mongo_update(self, db, table, where = {}, update={}, upsert = False, conn_close=False):
         client = self.mongo_conn()
         collection = client[db][table]
@@ -96,21 +107,17 @@ class Mongo:
             self.mongo_close(client)
         return result
     
-    def mongo_upsert(self,db, table, where = {}, update={}, upsert = True, conn_close=False):
-        client = self.mongo_conn()
-        collection = client[db][table]
-        res = collection.update_one(where, {"$set": update}, upsert= upsert)
-        if conn_close == True:
-            self.mongo_close(client)
-        return res
-    
-    def __mongo_update_multiple(self, db, table, where=[], update=[], operation='$set', upsert= True, conn_close=False):
+    def __mongo_update_multiple(self, db, table, where, update, operation, upsert, conn_close):
         client = self.mongo_conn()
         collection = client[db][table]
         
         if len(where) != len(update):
-            raise "where condition length is different than update length."
-        
+            exp = "where condition length(%s) is different than update length(%s)." %(len(where), len(update))
+            print(exp)
+            raise "where condition length(%s) is different than update length(%s)." %(len(where), len(update))
+            #raise "where condition length is different than update length."
+        if len(where) == 0:
+            raise "all lengh is 0"
         obj = []
         for z in zip(where, update):   
             obj.append(pymongo.UpdateMany(z[0], {operation:z[1]}, upsert=upsert))
@@ -123,42 +130,29 @@ class Mongo:
     
     def mongo_update_multiple(self, db, table, where=[], update=[], upsert = True, conn_close=False):
         return self.__mongo_update_multiple(db, table, where, update, '$set', upsert, conn_close )
-
-        # client = self.mongo_conn()
-        # collection = client[db][table]
-        
-        # if len(where) != len(update):
-        #     print("where condition length(%s) is different than update length(%s)." %(len(where), len(update)))
-        #     raise "where condition length(%s) is different than update length(%s)." %(len(where), len(update))
-        
-        # obj = []
-        # for z in zip(where, update):   
-        #     obj.append(pymongo.UpdateMany(z[0], {"$set":z[1]}, upsert=upsert))
-        # #result = collection.bulk_write(pymongo.UpdateMany(where, {"$set":update}, upsert=upsert))
-
-        # result = collection.bulk_write(obj)
-        # self.mongo_close(client)
-        # return result
     
-    def mongo_update_append(self, db, table, where=[], update=[], conn_close=False):
-        return self.__mongo_update_multiple(db, table, where, update, '$push', upsert=False, conn_close=False)
+    def mongo_update_append(self, db, table, where=[], update=[], upsert=False, conn_close=False):
+        '''
+
+        '''
+        return self.__mongo_update_multiple(db, table, where, update, '$push', upsert, conn_close=False)
     
-    def mongo_group(self, db, table, group = {}, statistics = {}, where = {}):
-        client = self.mongo_conn()
-        collection = client[db][table]
+    # def mongo_group(self, db, table, group = {}, statistics = {}, where = {}):
+    #     client = self.mongo_conn()
+    #     collection = client[db][table]
 
-        if group == {} or statistics == {}:
-            return []
-        group = {"_id": group}
-        merge = {**group, **statistics}        
-        group = {"$group": merge}
-        match = {"$match":where}
+    #     if group == {} or statistics == {}:
+    #         return []
+    #     group = {"_id": group}
+    #     merge = {**group, **statistics}        
+    #     group = {"$group": merge}
+    #     match = {"$match":where}
 
-        # print("group: %s\nmatch: %s" %(group, match))
+    #     # print("group: %s\nmatch: %s" %(group, match))
 
-        result = collection.aggregate([match, group])
-        self.mongo_close(client)
-        return result
+    #     result = collection.aggregate([match, group])
+    #     self.mongo_close(client)
+    #     return result
 
 class MongoSchema:
     client = None
