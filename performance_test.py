@@ -90,7 +90,7 @@ class MongoInsertTest:
                     ids.append({Schema.id: dic[Schema.id]})
                     obsdatas.append(dic)
                 round_start = time.time()
-                #mongodb.mongo_insert(db, mongo_table, obsdatas)
+                mongodb.mongo_insert(db, mongo_table, obsdatas)
                 mongodb.mongo_update_multiple(db, mongo_table, ids, obsdatas)
 
                 round_end = time.time()
@@ -100,6 +100,7 @@ class MongoInsertTest:
 
                 round_history.append((round_end - round_start) * 1000)
                 show('insert_process.csv', "cost: %s,    insertrows: %s,    obstime: %s" %((round_end - round_start) * 1000, len(datas), data['ObsTime']))
+                #print(mongodb.mongo_conn_state())
                 if runtype == 'DEV':
                     count+=1
                     #print('  data len: %s' %count)
@@ -262,6 +263,93 @@ class MongoSelectEachStation:
         return (end - start) * 1000, round_list, action_rows, informations
 
 
+class TestQCUpdate:
+    db = ""
+    collection = ''
+    conn_str = ''
+    def __init__(self, conn_str, db, collection) -> None:
+        self.conn_str = conn_str
+        self.db = db
+        self.collection = collection
+
+    def test(self):
+        mysql = MySQL()
+        mysql_test_table = 'autoprechour'
+        #stnos = mysql.get_all_station(mysql_test_table)
+        stnos = ['C0A520', 'C0A530']
+
+        mongodb = Mongo()
+        mongodb.mongo_conn(host=self.conn_str)
+        db = self.db
+        mongo_table = self.collection
+        arrange = MongoDataArrange()
+        for day in range(1, 10):
+#       for day in range(1, 32):
+            for hour in range(0, 24):
+                obstime = datetime(2022, 1, day, hour, 0, 0, tzinfo=timezone(timedelta(hours=8)))
+                datas = mongodb.mongo_find(db, mongo_table, where={Schema.stationid:{Opretor.In:stnos}, Schema.obstime:obstime})
+                if len(datas) == 0:
+                    print("no datas.   obstime: %s" %( obstime))
+                    continue
+                else:
+                    print(" obstime: %s"%(obstime))
+                update_datas = []
+                where_datas = []
+                for data in datas:
+                    #print(data)
+                    #data[Schema.Rain.qc_key] = arrange.qc_arrange(['cond', 'qc_method1'], ['success', 'fail'])
+                    qc = arrange.qc_arrange(['多彩品管1', '多彩品管2'], ['Q', 'A'])  
+                    # print("qcdata:")                      
+                    # print(qc)
+                    update = {Schema.id:data[Schema.id], Schema.Rain.qc_key:qc}
+                    update = {"%s.0.%s"%(Schema.Rain.key,Schema.Rain.qc_key):{
+                                    "$each":qc
+                                    }
+                                }
+                    #print(update)
+                    update_datas.append(update)
+                    where = {Schema.id:data[Schema.id]}
+                    where_datas.append(where)
+                    
+                    
+                os.system("pause")
+                mongodb.mongo_update_append(db, mongo_table, where=where_datas, update=update_datas)
+
+class TestAppendObsDataHistory:
+    db = ""
+    collection = ''
+    conn_str = ''
+    def __init__(self, conn_str, db, collection) -> None:
+        self.conn_str = conn_str
+        self.db = db
+        self.collection = collection
+    
+    def test(self):
+        mysql = MySQL()
+        mysql_test_table = 'autoprechour'
+        #stnos = mysql.get_all_station(mysql_test_table)
+        stnos = ['C0A520', 'C0A530']
+        obstimes = mysql.get_all_obstime(mysql_test_table)
+
+        mongodb = Mongo()
+        mongodb.mongo_conn(host=self.conn_str)
+        db = self.db
+        mongo_table = self.collection
+        arrange = MongoDataArrange()
+
+        for obstime in obstimes:
+            datas = mysql.get_data_by_obstime(mysql_test_table, obstime['obstime'].isoformat(), 'Stno, ObsTime, StnPres, Tx, WD, WS, Precp, sunshine, RH, RecUpdTime')
+            obsdatas = []
+            ids = []
+            for data in datas:
+                updatetime = datetime.now
+                dic = dict()
+                id = arrange.get_id(data['Stno'], data['ObsTime'])
+                dic = arrange.rain_arrange(dic, data['Precp'], data['RH'], updatetime= updatetime, isappend=False)
+                obsdatas.append(dic)
+                ids.append({Schema.id: id})
+                mongodb.mongo_update_append(db,)
+
 
 if __name__ == '__main__':
 
@@ -301,3 +389,5 @@ if __name__ == '__main__':
         totalcost, round_history, action_rows, informations = test.start_test()
         print_cost_time('append_history.csv',total_sec=totalcost, round_cost=round_history, action_rows=action_rows, informations=informations)
 
+    test = TestQCUpdate(conn_str, db, mongo_table)
+    test.test()
