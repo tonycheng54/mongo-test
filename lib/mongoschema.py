@@ -1,15 +1,16 @@
-
-
-    
-
-
 class Schema:
-    class __AttributeBase:
+    # class QC:
+    #     key = 'QC'
+    #     qc_name = "name"
+    #     result = "value"
+
+    class AttributeBase():
         updatetime = "updatetime"
-        qc_key = "QC"
+        #qc_key = "QC"
         
         class QC:
-            qc_name = "name"
+            key = "QC"
+            name = "name"
             result = "value"
 
     id = '_id'
@@ -17,23 +18,23 @@ class Schema:
     obstime = "ObsTime"
     updatetime = "updatetime"
 
-    class Pressure(__AttributeBase):
+    class Pressure(AttributeBase):
         #updatetime = "updatetime"
         key = "StnPres"
         pressure  = "pressure"
 
-    class Tx(__AttributeBase):
+    class Tx(AttributeBase):
         #updatetime = "updatetime"
         key = 'Tx'
         tx = "Tx"
 
-    class Wind(__AttributeBase):
+    class Wind(AttributeBase):
         #updatetime = "updatetime"
         key = 'Wind'
         ws = 'WS'
         wd = 'WD'
         wg = 'WG'
-    class Rain(__AttributeBase):
+    class Rain(AttributeBase):
         #updatetime = 'updatetime'
         key = 'Rain'
         precp = 'Precp'
